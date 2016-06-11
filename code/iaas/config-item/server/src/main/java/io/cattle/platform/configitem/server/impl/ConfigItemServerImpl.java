@@ -73,7 +73,22 @@ public class ConfigItemServerImpl implements ConfigItemServer, InitializationTas
     }
 
     protected void handleDownload(Request req) throws IOException {
-        ConfigItem item = itemRegistry.getConfigItem(req.getItemName());
+        String[] archs = (String[]) req.getParams().get("arch");
+        String arch = "";
+        String archSuffix = "";
+        if (archs != null && archs.length > 0 && !archs[0].equals("amd64")) {
+            arch = archs[0];
+            archSuffix = "_" + arch;
+        }
+        log.debug("Client [{}] is requesting item [{}]", req.getClient(), req.getItemName() + archSuffix);
+        ConfigItem item = itemRegistry.getConfigItem(req.getItemName() + archSuffix);
+        if (item == null) {
+            log.debug("Item [{}] does not exist", req.getItemName() + archSuffix);
+            item = itemRegistry.getConfigItem(req.getItemName());
+            if (item != null) {
+                log.debug("Item [{}] exists", req.getItemName());
+            }
+        }
 
         if (item == null) {
             log.info("Client [{}] requested unknown item [{}]", req.getClient(), req.getItemName());

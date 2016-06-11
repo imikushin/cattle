@@ -77,6 +77,9 @@ purge_old()
     done
 }
 
+declare -A archs=( ["x86_64"]="amd64" ["armv7l"]="arm" ["aarch64"]="arm" )
+ARCH="${archs[$(uname -m)]}"
+
 download()
 {
     cleanup
@@ -115,9 +118,9 @@ download()
         fi
     fi
 
-    info Downloading $DOWNLOAD_URL "current=$current"
+    info Downloading $DOWNLOAD_URL "current=$current&arch=${ARCH}"
 
-    get $get_opts "$DOWNLOAD_URL?current=$current" > $DOWNLOAD_TEMP/download
+    get $get_opts "$DOWNLOAD_URL?current=$current&arch=${ARCH}" > $DOWNLOAD_TEMP/download
     HEADER=$(cat $DOWNLOAD_TEMP/download | head -n1)
     if [[ "$HEADER" =~ version:* ]]; then
         archive_version=$(echo $HEADER | cut -f2 -d:)

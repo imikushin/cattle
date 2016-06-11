@@ -6,33 +6,38 @@ import io.cattle.platform.configitem.server.agentinclude.AgentIncludeMap;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 import org.apache.commons.codec.binary.Hex;
 
 import com.netflix.config.DynamicListProperty;
-import com.netflix.config.DynamicStringProperty;
 
 public class AgentIncludeMapImpl implements AgentIncludeMap {
 
     private static final DynamicListProperty<String> KEYS = ArchaiusUtil.getList("agent.packages.types");
-
-    Map<String, DynamicStringProperty> values = new ConcurrentHashMap<String, DynamicStringProperty>();
 
     @Override
     public List<String> getNamedMaps() {
         return KEYS.get();
     }
 
-    protected String sanitize(String s) {
+    protected static String sanitize(String s) {
         if (s == null) {
             return s;
         }
 
+        if (s.contains("_")) {
+            s = s.substring(0, s.indexOf('_'));
+        }
+
         return s.replaceAll("-", ".").toLowerCase();
+    }
+
+    protected static String inferArch(String s) {
+        if (s.contains("_")) {
+            return s.substring(s.indexOf('_') + 1);
+        }
+        return "";
     }
 
     @Override
@@ -43,16 +48,20 @@ public class AgentIncludeMapImpl implements AgentIncludeMap {
             return result;
         }
 
+        String arch = inferArch(name);
+
         for (String item : ArchaiusUtil.getList("agent.packages." + sanitize(name)).get()) {
             String key = String.format("agent.package.%s.url", sanitize(item));
-            DynamicStringProperty prop = values.get(key);
 
-            if (prop == null) {
-                prop = ArchaiusUtil.getString(key);
-                values.put(key, prop);
+            String value = null;
+            if (arch.length() > 0) {
+                String archValue = ArchaiusUtil.getString(key + "." + arch).get();
+                if (archValue != null) {
+                    value = archValue;
+                }
+            } else {
+                value = ArchaiusUtil.getString(key).get();
             }
-
-            String value = prop.get();
 
             if (value != null) {
                 result.put(item, value);

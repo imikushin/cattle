@@ -17,6 +17,7 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 
+import io.github.ibuildthecloud.gdapi.util.RequestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,15 @@ public class ConfigItemServerImpl implements ConfigItemServer, InitializationTas
     }
 
     protected void handleDownload(Request req) throws IOException {
-        ConfigItem item = itemRegistry.getConfigItem(req.getItemName());
+        String arch = RequestUtils.makeSingularStringIfCan(req.getParams().get("arch"));
+        String archSuffix = "";
+        if (arch != null && arch.length() != 0 && !arch.equals("amd64")) {
+            archSuffix = "-" + arch;
+        }
+        ConfigItem item = itemRegistry.getConfigItem(req.getItemName() + archSuffix);
+        if (item == null) {
+            item = itemRegistry.getConfigItem(req.getItemName());
+        }
 
         if (item == null) {
             log.info("Client [{}] requested unknown item [{}]", req.getClient(), req.getItemName());

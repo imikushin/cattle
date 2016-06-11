@@ -77,6 +77,15 @@ purge_old()
     done
 }
 
+case $(uname -m) in
+    arm* | aarch*)
+        ARCH=arm
+        ;;
+    *)
+        ARCH=amd64
+        ;;
+esac
+
 download()
 {
     cleanup
@@ -115,9 +124,9 @@ download()
         fi
     fi
 
-    info Downloading $DOWNLOAD_URL "current=$current"
+    info Downloading $DOWNLOAD_URL "current=$current&arch=${ARCH}"
 
-    get $get_opts "$DOWNLOAD_URL?current=$current" > $DOWNLOAD_TEMP/download
+    get $get_opts "$DOWNLOAD_URL?current=$current&arch=${ARCH}" > $DOWNLOAD_TEMP/download
     HEADER=$(cat $DOWNLOAD_TEMP/download | head -n1)
     if [[ "$HEADER" =~ version:* ]]; then
         archive_version=$(echo $HEADER | cut -f2 -d:)

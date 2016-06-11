@@ -77,6 +77,9 @@ purge_old()
     done
 }
 
+declare -A archs=( ["x86_64"]="" ["armv7l"]="_arm" ["aarch64"]="_arm" )
+arch_suffix="${archs[$(uname -m)]}"
+
 download()
 {
     cleanup
@@ -112,6 +115,10 @@ download()
             UPTODATE=true
             VERSION=$current
             return 0
+        fi
+    else
+        if [[ "${name}" =~ .*services$|pyagent$ ]]; then
+            DOWNLOAD_URL=${DOWNLOAD_URL}${arch_suffix}
         fi
     fi
 

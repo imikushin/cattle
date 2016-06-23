@@ -35,7 +35,7 @@ if [ ! -d ${LOCK_DIR} ]; then
 fi
 
 if [ "$CATTLE_AGENT_STARTUP" != "true" ] && [ -e /etc/agent-instance ]; then
-    for i in {1..3}; do
+    for i in {1..15}; do
         if [ ! -e /dev/shm/agent-instance-started ]; then
             sleep 2
         else

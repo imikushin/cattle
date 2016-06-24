@@ -47,13 +47,21 @@ public class ConfigItemServerImpl implements ConfigItemServer, InitializationTas
     protected void handleApplied(Request req) {
         ItemVersion version = req.getAppliedVersion();
 
+        String arch = RequestUtils.makeSingularStringIfCan(req.getParams().get("arch"));
+        String archSuffix = "";
+        if (arch != null && arch.length() != 0 && !arch.equals("amd64")) {
+            archSuffix = "-" + arch;
+        }
+        ConfigItem item = itemRegistry.getConfigItem(req.getItemName() + archSuffix);
+        if (item == null) {
+            item = itemRegistry.getConfigItem(req.getItemName());
+        }
+
         if (!versionManager.isAssigned(req.getClient(), req.getItemName())) {
             log.error("Client [{}] is reporting applied on non-assigned item [{}]", req.getClient(), req.getItemName());
             req.setResponseCode(Request.NOT_FOUND);
             return;
         }
-
-        ConfigItem item = itemRegistry.getConfigItem(req.getItemName());
 
         if (version.isLatest()) {
             if (item == null) {

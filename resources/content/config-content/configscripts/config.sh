@@ -235,8 +235,8 @@ apply()
 
 applied()
 {
-    info Sending $1 applied ${dir} ${VERSION}
-    put "${DOWNLOAD_URL}?version=${VERSION}" > /dev/null
+    info Sending $1 applied ${dir} ${VERSION} arch=${ARCH}
+    put "${DOWNLOAD_URL}?version=${VERSION}&arch=${ARCH}" > /dev/null
 }
 
 dump()
